@@ -2,50 +2,80 @@
 import { computed, ref } from "vue";
 import data from "./data";
 
-const { ws, tws, map } = data;
-
-// current word index
-const cwi = ref();
-
-// current letter index
-const cli = ref();
-
-// current translate word
-const ctw = computed(() => tws[cwi.value]);
-
 const inputEle = ref();
 const inputVal = ref("");
 const isFocus = ref(false);
+const isFinished = ref(false);
+
+// 当前段落索引
+const cpi = ref(0);
+// 当前段落
+const cp = computed(() => data[cpi.value]);
+// 单词列表
+const ws = computed(() => cp.value.ws);
+// 单词列表的翻译
+const tws = computed(() => cp.value.tws);
+// 单词和单词翻译的映射关系
+const map = computed(() => cp.value.map);
+
+// 当前单词索引
+const cwi = ref(0);
+// 当前单词
+const cw = computed(() => ws.value[cwi.value].word);
+// 当前单词的翻译
+const ctw = computed(() => tws.value[cwi.value]);
+
+// 当前字母索引
+const cli = ref(0);
+// 当前字母
+const cl = computed(() => cw.value[cli.value]);
+
+// 是否最后一个段落
+const isLastParagraph = computed(() => cpi.value === data.length - 1);
+
+// 是否最后一个单词
+const isLastWord = computed(() => cwi.value === ws.value.length - 1);
+
+// 是否最后一个字母
+const isLastLetter = computed(() => cli.value === cw.value.length - 1);
+
 const onInput = () => {
-  if (cwi.value >= ws.length) return;
-
-  if (!cwi.value) {
-    cwi.value = 0;
-  }
-
-  if (!cli.value) {
-    cli.value = 0;
-  }
-
-  // current word
-  const cw = ws[cwi.value].word;
-
-  // current letter
-  const cl = cw[cli.value];
-
-  if (inputVal.value === cl) {
-    cli.value += 1;
-    if (cli.value === cw.length) {
-      cwi.value += 1;
-      cli.value = 0;
-    }
-  }
+  const v = inputVal.value;
   inputVal.value = "";
+
+  if (isFinished.value) return;
+
+  if (v !== cl.value) return;
+
+  // 如果不是最后一个字母
+  if (!isLastLetter.value) {
+    cli.value += 1;
+    return;
+  }
+
+  cli.value = 0;
+  // 如果不是最后一个单词
+  if (!isLastWord.value) {
+    cwi.value += 1;
+    return;
+  }
+
+  // 如果不是最后一个段落
+  if (!isLastParagraph.value) {
+    cwi.value = 0;
+    cpi.value += 1;
+  } else {
+    cwi.value += 1;
+    isFinished.value = true;
+    inputEle.value.blur();
+  }
 };
 
 const onRestart = () => {
-  cwi.value = null;
-  cli.value = null;
+  cpi.value = 0;
+  cwi.value = 0;
+  cli.value = 0;
+  isFinished.value = false;
   inputEle.value.focus();
 };
 </script>
@@ -102,7 +132,9 @@ const onRestart = () => {
   </div>
 
   <div class="ctrl-buttons">
-    <button class="button" @click="onRestart">重新开始</button>
+    <button v-show="isFinished" class="button" @click="onRestart">
+      重新开始
+    </button>
   </div>
 </template>
 
