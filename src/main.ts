@@ -4,6 +4,10 @@ import { createPinia } from "pinia";
 import App from "./App.vue";
 import router from "./router";
 
+import "reset.css";
+import "@/styles/variables.scss";
+import "@/styles/base.scss";
+
 const app = createApp(App);
 
 app.use(createPinia());

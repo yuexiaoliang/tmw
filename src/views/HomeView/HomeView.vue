@@ -1,13 +1,7 @@
 <script setup lang="ts">
-import { toRefs } from "vue";
-import { useCounterStore } from "@/stores/counter";
-const { count, doubleCount, increment } = toRefs(useCounterStore());
+import Typing from "@/components/Typing/Typing.vue";
 </script>
 
 <template>
-  {{ count }}
-  --
-  {{ doubleCount }}
-
-  <button @click="increment">+</button>
+  <Typing />
 </template>
